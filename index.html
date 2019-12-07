@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<head>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.6.1/p5.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.6.1/addons/p5.dom.min.js"></script>
+    <script src="https://www.auduno.com/clmtrackr/build/clmtrackr.min.js"></script>
+    <style>
+    body {
+      background:#000000;
+      margin:0;
+      padding:0;
+    }
+
+    #defaultCanvas0 {
+      left:50%;
+      top:50%;
+      position:absolute;
+    }
+    </style>
+
+</head>
+
+<script>
+
+let positions = [];
+
+let capture;
+let tracker;
+let w = 480,
+    h = 640;
+
+// FACE 1
+let indexIn = 0;
+let indexOut = 0;
+let palette = [];
+let opacity = [];
+
+
+let bgLight, faceLight, lightDice;
+
+// TIMER!
+let counter=0;
+
+function setup() {
+    capture = createCapture({
+        audio: false,
+        video: {
+            width: w,
+            height: h
+        }
+    });
+    if (displayWidth < displayHeight) {
+      w = ((displayHeight/1.75) * w) / h;
+      h = (displayHeight/1.75);
+    }
+    else {
+      h = ((displayWidth/1.75) * h) / w;
+      w = (displayWidth/1.75);
+    }
+    createCanvas(w, h);
+    capture.size(w, h);
+    capture.hide();
+
+    tracker = new clm.tracker();
+    tracker.init();
+    tracker.start(capture.elt);
+
+    // canvas position on webpage
+    document.getElementById("defaultCanvas0").style.marginLeft = "-" + (w/2) + "px";
+    document.getElementById("defaultCanvas0").style.marginTop = "-" + (h/2) + "px";
+
+    // face colors
+    for (let i=0; i < 20;i++) {
+      palette.push([random(75,150),random(75,150), random(75,150), 0]);
+    }
+
+}
+
+function draw() {
+  // begin
+  frameRate(100);
+  background(palette[0]);
+  noStroke();
+
+  if (counter < 15) {
+    counter+=1;
+    fadeIn(indexIn);
+    if (indexIn < 16) {
+      indexIn++;
+    }
+    else {
+      indexIn = 0;
+    }
+
+  }
+  else {
+    counter = 0;
+    generatePalette(indexOut);
+    if (indexOut < 16) {
+      indexOut++;
+    }
+    else {
+      indexOut = 0;
+    }
+  }
+
+  positions = tracker.getCurrentPosition();
+
+
+  if (positions.length > 0) {
+
+      let noseDist = getDistance(positions[35], positions[39]);
+      if (noseDist > 60) {
+
+        generateCubistBg([0, positions[62][1]-20]);
+        // Generating Face
+        generateHead();
+        generateNose();
+        generateMouth();
+        generateBrows();
+      }
+      else {
+        generateCubistBg([0,h/2]);
+        console.log("No face detected.");
+      }
+  }
+  else {
+    generateCubistBg([0,h/2]);
+    console.log("No face detected.");
+  }
+
+}
+
+function generateNose() {
+  let noseCoords = [positions[40][0],positions[40][1],positions[39][0],
+      positions[39][1],positions[38][0],positions[38][1],positions[37][0],positions[37][1],
+      positions[42][0],positions[42][1]-20,positions[41][0],positions[41][1],positions[40][0],
+      positions[40][1],positions[43][0]-10,positions[43][1]-10,positions[42][0],positions[42][1]-20,
+      positions[43][0]-10,positions[43][1]-10, positions[37][0],positions[37][1],positions[36][0],positions[36][1],
+      positions[35][0],positions[35][1],positions[42][0],positions[42][1]-20, positions[37][0],
+      positions[37][1],positions[36][0], positions[36][1],positions[35][0],positions[35][1],
+      positions[42][0],positions[42][1]-20, positions[41][0],positions[41][1],positions[33][0], positions[33][1],positions[33][0],positions[33][1],positions[40][0],positions[40][1],
+      positions[43][0]-10,positions[43][1]-10,positions[41][0], positions[41][1]];
+  let j = 7;
+  for (let i=0; i < noseCoords.length;i+=8) {
+    fill(palette[j]);
+    j+=1;
+    quad(noseCoords[i],noseCoords[i+1],noseCoords[i+2],noseCoords[i+3],noseCoords[i+4],noseCoords[i+5],noseCoords[i+6],noseCoords[i+7]);
+  }
+  noStroke();
+
+  fill(255);
+  if (lightDice === 0) {
+    fill(0);
+  }
+  let noseDist = getDistance(positions[35], positions[39]);
+  ellipse(positions[42][0],positions[42][1], map(noseDist,20,150,2,10), map(noseDist,20,150,2,10));
+  ellipse(positions[43][0],positions[43][1], map(noseDist,20,150,2,10), map(noseDist,20,150,2,10));
+}
+
+function generateMouth() {
+  // reduce searching to optmize performance
+  fill(palette[4]);
+  beginShape();
+  vertex(positions[44][0],positions[44][1]);
+  vertex(positions[45][0],positions[45][1]);
+  vertex(positions[46][0],positions[46][1]);
+  vertex(positions[47][0],positions[47][1]);
+  vertex(positions[60][0],positions[60][1]);
+  vertex(positions[61][0],positions[61][1]);
+  endShape();
+
+  fill(palette[5]);
+  beginShape();
+  vertex(positions[47][0],positions[47][1]);
+  vertex(positions[48][0],positions[48][1]);
+  vertex(positions[49][0],positions[49][1]);
+  vertex(positions[50][0],positions[50][1]);
+  vertex(positions[59][0],positions[59][1]);
+  vertex(positions[60][0],positions[60][1]);
+  endShape();
+
+  fill(palette[6]);
+  beginShape();
+  for (let i=50;i < 60;i++) {
+    if (i === 56) {
+      vertex(positions[61][0],positions[61][1]);
+    }
+    vertex(positions[i][0],positions[i][1]);
+    if (i === 55) {
+      vertex(positions[44][0],positions[44][1]);
+    }
+  }
+  endShape();
+
+  fill(0,0,0,100);
+  beginShape();
+  vertex(positions[56][0],positions[56][1]);
+  vertex(positions[57][0],positions[57][1]);
+  vertex(positions[58][0],positions[58][1]);
+  vertex(positions[59][0],positions[59][1]);
+  vertex(positions[60][0],positions[60][1]);
+  vertex(positions[61][0],positions[61][1]);
+  endShape();
+}
+
+function generatePalette(index) {
+  palette[index] = [random(75,150),random(75,150), random(75,150), 0]
+}
+
+function getColor(col) {
+  return color(col[0],col[1],col[2],col[3]);
+}
+
+function getDistance(pos, pos2) {
+  return Math.sqrt(Math.pow(pos2[1]-pos[1], 2) + Math.pow(pos2[0]-pos[0], 2))
+}
+
+function fadeIn(index) {
+    let op = 255;
+    palette[index] = [palette[index][0], palette[index][1], palette[index][2], op];
+}
+
+function generateCubistBg(vertices) {
+  fill(palette[0]);
+  rect(0,0, w, h);
+  fill(palette[1]);
+  rect(vertices[0],vertices[1],w,h);
+}
+
+function generateBrows() {
+  strokeWeight(15);
+  noFill();
+  stroke(palette[15]);
+  beginShape();
+  vertex(positions[19][0],positions[19][1]);
+  vertex(positions[20][0],positions[20][1]);
+  vertex(positions[21][0],positions[21][1]);
+  vertex(positions[22][0],positions[22][1]);
+  endShape();
+
+  stroke(palette[16]);
+  beginShape();
+  vertex(positions[18][0],positions[18][1]);
+  vertex(positions[17][0],positions[17][1]);
+  vertex(positions[16][0],positions[16][1]);
+  vertex(positions[15][0],positions[15][1]);
+  endShape();
+  noStroke();
+}
+
+function generateHead() {
+    fill(palette[2]);
+    beginShape();
+    for (let i=0;i <20;i++) {
+      vertex(positions[i][0],positions[i][1]);
+    }
+    endShape();
+
+    fill(0,0,0,10);
+    beginShape();
+    for (let i=0;i < 7;i++) {
+      vertex(positions[i][0],positions[i][1]);
+    }
+    vertex(positions[44][0],positions[44][1]);
+    endShape();
+
+    beginShape();
+    for (let i=14;i > 8;i--) {
+      vertex(positions[i][0],positions[i][1]);
+    }
+    vertex(positions[50][0],positions[50][1]);
+    endShape();
+
+    fill(255,255,255,20);
+    beginShape();
+    vertex(positions[0][0],positions[0][1]);
+    vertex(positions[35][0],positions[35][1]);
+    vertex(positions[44][0],positions[44][1]);
+    endShape();
+
+    beginShape();
+    vertex(positions[14][0],positions[14][1]);
+    vertex(positions[39][0],positions[39][1]);
+    vertex(positions[50][0],positions[50][1]);
+    endShape();
+}
+
+function mousePressed() {
+  if (mouseX > 0 && mouseX < width && mouseY > 0 && mouseY < height) {
+    let fs = fullscreen();
+    fullscreen(!fs);
+  }
+}
+
+
+
+</script>
+</html>
