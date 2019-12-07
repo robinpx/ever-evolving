@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <head>
+    <title>Ever-Evolving Portrait</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.6.1/p5.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.6.1/addons/p5.dom.min.js"></script>
     <script src="https://www.auduno.com/clmtrackr/build/clmtrackr.min.js"></script>
@@ -8,6 +9,7 @@
       background:#000000;
       margin:0;
       padding:0;
+      transform:scale(0.60) translate(0%, 83vh);
     }
 
     #defaultCanvas0 {
@@ -287,8 +289,8 @@ function generateHead() {
 
 function mousePressed() {
   if (mouseX > 0 && mouseX < width && mouseY > 0 && mouseY < height) {
-    let fs = fullscreen();
-    fullscreen(!fs);
+    let fullScr = fullscreen();
+    fullscreen(!fullScr);
   }
 }
 
